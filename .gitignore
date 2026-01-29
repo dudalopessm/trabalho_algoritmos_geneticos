@@ -1,3 +1,5 @@
 *.pdf
 .venv/
 datasets/
+data/
+__pycache__/
