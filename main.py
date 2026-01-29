@@ -7,7 +7,7 @@ from src.process_image import process_all_images, process_dataset
 
 if __name__ == "__main__":
     # Choose mode: 'test' for single dataset or 'all' for all datasets
-    MODE = "test"  # Change to "all" to process all datasets
+    MODE = "all"  # Change to "all" to process all datasets
     
     if MODE == "test":
         # Test with Corel-10K

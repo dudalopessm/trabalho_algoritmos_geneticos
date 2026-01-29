@@ -158,9 +158,9 @@ def process_image(image_path, image_identifier, csv_filename, dataset_path):
             all_histograms[color_space] = histograms
 
             # Save each histogram as a JPG file
-            plot_and_save_histograms(
-                histograms, os.path.join(one_d_histograms_folder, color_space)
-            )
+            #plot_and_save_histograms(
+            #    histograms, os.path.join(one_d_histograms_folder, color_space)
+            #)
 
         # Compute LBP histogram and save to the 1D histograms folder
         grayscale_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -170,7 +170,7 @@ def process_image(image_path, image_identifier, csv_filename, dataset_path):
         lbp_histograms = {"LBP_Histogram": lbp_histogram}
         lbp_folder = os.path.join(one_d_histograms_folder, "LBP")
         os.makedirs(lbp_folder, exist_ok=True)
-        plot_and_save_histograms(lbp_histograms, lbp_folder)
+        #plot_and_save_histograms(lbp_histograms, lbp_folder)
 
         # Include LBP histogram in the combined_histograms dictionary
         all_histograms["LBP_Histogram"] = lbp_histogram
@@ -193,10 +193,10 @@ def process_image(image_path, image_identifier, csv_filename, dataset_path):
             intra_color_space_histograms = {
                 k: v for k, v in all_2d_histograms.items() if f"{color_space}" in k
             }
-            plot_and_save_2d_histograms(
-                intra_color_space_histograms,
-                os.path.join(intra_colorspace_folder, color_space),
-            )
+            #plot_and_save_2d_histograms(
+            #    intra_color_space_histograms,
+            #    os.path.join(intra_colorspace_folder, color_space),
+            #)
 
         # Compute and save inter-color space 2D histograms
         all_inter_2d_histograms = {}
@@ -229,10 +229,10 @@ def process_image(image_path, image_identifier, csv_filename, dataset_path):
                         for k, v in all_inter_2d_histograms.items()
                         if f"{cs1}_Channel_" in k and f"vs_{cs2}_Channel_" in k
                     }
-                    plot_and_save_2d_histograms(
-                        inter_color_space_histograms,
-                        inter_color_space_folder_path,
-                    )
+                    #plot_and_save_2d_histograms(
+                    #    inter_color_space_histograms,
+                    #    inter_color_space_folder_path,
+                    #)
 
         # Combine histograms
         combined_histograms = {
