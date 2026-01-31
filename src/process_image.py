@@ -250,13 +250,14 @@ def process_image(image_path, image_identifier, csv_filename, dataset_path):
         print(f"Error processing {image_identifier}: {e}")
 
 
-def process_dataset(dataset_path, dataset_name=None):
+def process_dataset(dataset_path, dataset_name=None, resume=False):
     """
     Processes all images in a single dataset and saves results to a CSV file.
     
     Args:
         dataset_path (str): Path to the dataset directory.
         dataset_name (str): Name of the dataset (used for CSV filename). If None, extracted from path.
+        resume (bool): If True, continues from where the processing was interrupted.
     """
     if dataset_name is None:
         dataset_name = os.path.basename(dataset_path.rstrip(os.sep))
@@ -264,6 +265,8 @@ def process_dataset(dataset_path, dataset_name=None):
     print(f"\n{'='*60}")
     print(f"Processing dataset: {dataset_name}")
     print(f"Dataset path: {dataset_path}")
+    if resume:
+        print(f"RESUMING from interrupted processing...")
     print(f"{'='*60}\n")
     
     # Get all images from the dataset
@@ -281,14 +284,40 @@ def process_dataset(dataset_path, dataset_name=None):
     # Create CSV filename for this dataset
     csv_filename = os.path.join(HISTOGRAM_OUTPUT_PATH, f"{dataset_name}_histograms.csv")
     
-    # Ensure the CSV file starts fresh
-    if os.path.exists(csv_filename):
+    # Get already processed images if resuming
+    processed_identifiers = set()
+    start_idx = 0
+    if resume and os.path.exists(csv_filename):
+        print(f"Loading already processed images from {csv_filename}...")
+        try:
+            with open(csv_filename, 'r') as f:
+                next(f)  # Skip header
+                for line in f:
+                    # Extract image identifier (first column before first comma)
+                    image_id = line.split(',')[0]
+                    processed_identifiers.add(image_id)
+            
+            # Find the start index
+            for idx, image_id in enumerate(image_identifiers):
+                if image_id not in processed_identifiers:
+                    start_idx = idx
+                    break
+            
+            print(f"Found {len(processed_identifiers)} already processed images.")
+            print(f"Resuming from image {start_idx + 1}/{len(image_paths)}\n")
+        except Exception as e:
+            print(f"Error reading CSV: {e}")
+            print("Will start from the beginning.\n")
+            start_idx = 0
+    elif not resume and os.path.exists(csv_filename):
+        # Ensure the CSV file starts fresh if not resuming
         os.remove(csv_filename)
+        print(f"Removed existing CSV file. Starting fresh.\n")
     
     print(f"Found {len(image_paths)} images to process")
     print(f"CSV output: {csv_filename}\n")
     
-    for idx, (image_path, image_identifier) in enumerate(zip(image_paths, image_identifiers), 1):
+    for idx, (image_path, image_identifier) in enumerate(zip(image_paths[start_idx:], image_identifiers[start_idx:]), start_idx + 1):
         print(f"[{idx}/{len(image_paths)}] Processing {image_identifier}...")
         process_image(image_path, image_identifier, csv_filename, dataset_path)
     

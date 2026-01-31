@@ -64,7 +64,8 @@ O artigo utiliza alguns datasets de imagens públicos, disponíveis no Kaggle pa
 | **Produce-1400** | 1,400 | 14 | Fruits and vegetables (Object recognition) | [Kaggle Link](https://www.kaggle.com/datasets/amirhosseinroodaki/produce-1400) |
 | **Olivia-2688** | 2,688 | 8 | Complex natural scenes (Nature, Street, etc.) | [Kaggle Link](https://www.kaggle.com/datasets/amirhosseinroodaki/olivia-2688) |
 
-São a partir dessas imagens que as features são extraídas, e o AG é testado em diversos cenários utilizando a diversidade de datasets. A implementação dessa parte não será detalhada no README, pois esse não é o objetivo do nosso trabalho, mas o código estará disponível na pasta src/(...).
+São a partir dessas imagens que as features são extraídas, e o AG é testado em diversos cenários utilizando a diversidade de datasets. A implementação dessa parte não será detalhada no README, pois esse não é o objetivo do nosso trabalho, mas o código estará disponível na pasta src/process_images.py.
+
 ---
 ## Algoritmo Genético
 
