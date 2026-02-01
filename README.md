@@ -64,10 +64,41 @@ O artigo utiliza alguns datasets de imagens públicos, disponíveis no Kaggle pa
 | **Produce-1400** | 1,400 | 14 | Fruits and vegetables (Object recognition) | [Kaggle Link](https://www.kaggle.com/datasets/amirhosseinroodaki/produce-1400) |
 | **Olivia-2688** | 2,688 | 8 | Complex natural scenes (Nature, Street, etc.) | [Kaggle Link](https://www.kaggle.com/datasets/amirhosseinroodaki/olivia-2688) |
 
-São a partir dessas imagens que as features são extraídas, e o AG é testado em diversos cenários utilizando a diversidade de datasets. A implementação dessa parte não será detalhada no README, pois esse não é o objetivo do nosso trabalho, mas o código estará disponível na pasta src/process_images.py.
+São a partir dessas imagens que as features são extraídas, e o AG é testado em diversos cenários utilizando a diversidade de datasets. A implementação dessa parte não será detalhada no README, pois esse não é o objetivo do nosso trabalho, mas o código estará disponível na pasta src/process_images.py. Imagem = [feature_1, feature_2, ..., feature_N]. Ou seja, cada imagem possui várias features que a descrevem, que vieram dos histogramas 1D, 2D e CLBP.
 
 ---
 ## Algoritmo Genético
+O AG é projetado para otimizar a seleção de features, para que a acurácia e a eficiência computacional sejam melhoradas em comparação a outros métodos, visando a escalabilidade e precisão do sistema de recuperação. O método de AG proposto pelos autores considera dois objetivos conflitantes: maximizar a acurácia de recuperação (features selecionadas devem contribuir significativamente para o processo de correspondência de imagens) e minimizar o número de features (reduzir a dimensionalidade para boa eficiência computacional). O AG decide qual das N features de uma imagem devem ser usadas de forma subótima. 
+
+Modelagem do problema: 
+- Solução do problema: subconjunto ótimo de features (características) das imagens que maximize a precisão da recuperação e minimize a quantidade de features usadas.
+- Indivíduo: subconjunto de features definido por uma máscara binária aplicada ao vetor de características de todas as imagens do sistema (query e banco de dados). A representação é binária: 1 = feature usada no vetor de representação da imagem, 0 = feature excluída do processo de similaridade. Há a seleção somente das features que foram incluídas, o que reduz a dimensionalidade do vetor de características. Sua representação é:
+    - ```python
+      Vetor original: [f1, f2, f3, f4, f5, f6, f7, f8]
+      Indivíduo:      [1, 0, 1, 0, 0, 1, 0, 1]
+      Resultado:      [f1,    f3,        f6,    f8]
+      ```
+    - Uma outra representação possível poderia ser uma lista de índices das features selecionadas. Essa representação teria desvantagens como crossover dificultado e mutação com risco de duplicatas. A versão binária é melhor por facilitar operadores genéticos.
+- Função objetivo: $\text{Fitness}(Ind) = \alpha \cdot \text{Precision}(Ind) + (\alpha - 1) \cdot \frac{F_{\text{selected}}}{F_{\text{total}}}$
+- Operadores genéticos: seleção por torneio, cruzamento uniforme, mutação bit-flip. 
+- Restrições: pelo menos uma feature deve ser selecionada, e a precisão deve estar entre 0 e 1. 
+- Não é necessário corrigir indivíduos porque todo cromossomo binário já é válido por definição. Cada indivíduo representa apenas a seleção ou não de features, não havendo restrições rígidas de cardinalidade ou domínio que exijam reparo. Os indivíduos ruins serão penalizados implicitamente na função fitness, equilibrando precisão e compactação do vetor de características. O próprio processo evolutivo tende a descartar soluções inadequadas.
+
+Para cada indivíduo do AG, o sistema extrai os vetores completos da minha imagem query e o vetor completo de todas as imagens do banco, aplica a máscara do indivíduo, calcula a similaridade, gera top-K e mede a precisão. Seguindo o fluxo de dados considerado anteriormente, o termo query será equivalente a imagem que estou querendo achar similares e database será todo o conjunto de imagens disponíveis no banco de dados. As etapas do AG proposto são as seguintes:
+1. Inicialização da população: a população inicial gerada é diversa, ou seja, inicialmente é gerada de forma aleatória. A diversidade na população garante uma exploração ampla do espaço de features, aumentando a probabilidade de encontrar soluções ótimas.
+2.  A query e as imagens da database são representadas por vetores de features, e cada indivíduo define um subespaço de features selecionadas. Depois, calcula-se a distância entre a query e as imagens da database, ordena-se por similaridade e retorna as top-K imagens mais próximas. 
+3. Cada indivíduo é avaliado usando a função objetivo ponderada que equilibra precisão e número de features selecionadas. Explicando cada termo da equação:
+    - Precision(Ind): mede-se quantas imagens são relevantes de acordo com a query, calculada pela razão entre quantidade de imagens relevantes / quantidade de imagens retornadas. Termo de maximização do problema.
+    - F_selected/F_total: mede a proporção de features selecionadas, ou seja, a razão entre o número de features mantidas pelo indivíduo (número de 1 no cromossomo) pelo total de features originalmente extraídas da imagem. Termo associado à minimização da dimensionalidade do vetor.
+    - $\alpha$: é o peso da precisão, controla o quão relevante é recuperar imagens corretas em comparação a redução do número de features.
+    - $\alpha - 1$: controla o peso do tamanho do vetor, ou seja, o quão relevante é reduzir o número de features em comparação a precisão. 
+    - É importante ressaltar que como $\alpha$ > $\alpha - 1$, o termo da precisão tem maior peso na função. Se a precisão crescer, o fitness sobe, enquanto o termo de compactação está relacionado à proporção de features selecionadas. Então o valor de $\alpha$ define o quanto a precisão domina a equação. Ou seja, se $\alpha$ for grande, o AG pode preferir usar mais features se isso compensar no ganho de precisão.
+4. Então, é feita uma seleção por Torneio. Subconjuntos da população são amostrados aleatoriamente e o indivíduo mais apto (maior fitness) em cada subconjunto é escolhido para reprodução. Isso garante que soluções de maior qualidade tenham maior probabilidade de transmitir suas características às gerações seguintes, mantendo a diversidade genética.
+5. Também é adotado o Cruzamento Uniforme, em que as features de dois indivíduos pais selecionados são misturadas aleatoriamente para criação de novos descendentes. Essa operação gera indivíduos que combinam características de ambos os pais, promovendo a descoberta de novos subconjuntos de features e a exploração.
+6. Para manter a diversidade e evitar convergência prematura, bits aleatórios na representação das features são invertidos (de 1 para 0 ou vice-versa). Isso ajuda o algoritmo a explorar novas combinações de features e escapar de ótimos locais.
+7. A população evolui ao longo de múltiplas gerações, melhorando gradualmente os subconjuntos de features selecionados. O processo continua até que uma condição de parada seja atingida, como um número fixo de gerações ou convergência do fitness. A solução final fornece um equilíbrio ótimo entre a dimensionalidade das features e a acurácia da recuperação.
+
+Em resumo: inicialmente, são extraídos os vetores de características de todas as imagens. Em seguida, é inicializada uma população de indivíduos, onde cada indivíduo é uma máscara binária de seleção de features. Para avaliar um indivíduo, a máscara é aplicada aos vetores da query e da base de dados, calcula-se a similaridade, recuperam-se as K imagens mais próximas e mede-se a precisão e o nível de compactação. O fitness é então calculado. Após isso, aplicam-se seleção, cruzamento e mutação para gerar a próxima população, repetindo o processo até o critério de parada.
 
 ---
 ## Implementação

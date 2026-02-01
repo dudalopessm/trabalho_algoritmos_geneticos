@@ -66,3 +66,9 @@ GA_MUTATION_INDEPENDENCE_PROBABILITY = 0.1  # Probability for each gene to mutat
 GA_PRECISION_WEIGHT = 0.99  # Higher value prioritizes precision; lower value prioritizes minimizing features
 TOURNAMENT_SIZE = 4  # Tournament size for selection
 CROSSOVER_INDP_PROBABILITY = 0.7  # Probability for independent crossover per gene
+
+# Define the path to the image datasets
+IMAGE_DATASET_PATH = "datasets/"
+
+# Path to the CSV file for storing results
+CSV_FILE_PATH = "data/out/results.csv"

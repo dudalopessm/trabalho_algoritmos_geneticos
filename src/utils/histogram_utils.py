@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.feature import local_binary_pattern  # Import LBP function from skimage
-from .constants import (
+from src.utils.constants import (
     HISTOGRAM_BINS,
     HISTOGRAM_2D_BINS,
     IMAGE_FILE_EXTENSION,

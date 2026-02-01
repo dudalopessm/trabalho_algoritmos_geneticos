@@ -1,7 +1,7 @@
 import cv2
 import os
 import re
-from .constants import IMAGE_SIZE, COLOR_SPACES
+from src.utils.constants import IMAGE_SIZE, COLOR_SPACES
 
 
 def read_and_resize_image(image_path):
