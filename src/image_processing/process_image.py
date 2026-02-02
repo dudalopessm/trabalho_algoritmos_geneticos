@@ -19,6 +19,10 @@ from src.utils.constants import (
     IMAGE_FILE_EXTENSION,
     IMAGE_FILE_EXTENSIONS_SUPPORTED,
     COLOR_SPACES,
+    ONE_D_HISTOGRAMS_DIR,
+    TWO_D_HISTOGRAMS_DIR,
+    INTRA_COLORSPACE_DIR,
+    INTER_COLORSPACE_DIR,
 )
 
 def get_all_datasets(exclude=None):
